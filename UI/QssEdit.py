@@ -9,16 +9,26 @@
 
 
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QLabel, QSpinBox
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from GuiLib import QSSEdit
 from GuiLib import Tree,Tab
+from core.controlShell import ControlShell,ControlGroup
+
 
 class QssEdit(QMainWindow):
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
+
+        # 控件组
+        self.__control_group = ControlGroup()
+
+        # 控件字典
+        self.__control_dict = dict()
+
         self.setupUi()
+
 
         self.myEvent()
     
@@ -42,24 +52,35 @@ class QssEdit(QMainWindow):
         # -- 代码编辑器 --
         self.creatTab()
 
-        self.stackedWidget = QtWidgets.QStackedWidget(self.splitter_2)
-        self.stackedWidget.setStyleSheet("background-color: rgb(85, 255, 127);")
-        self.stackedWidget.setObjectName("stackedWidget")
+        self.preview = QStackedWidget(self.splitter_2)
+        self.preview.setStyleSheet("background-color: rgb(85, 255, 127);")
+        self.preview.setObjectName("stackedWidget")
         self.page = QtWidgets.QWidget()
         self.page.setObjectName("page")
-        self.stackedWidget.addWidget(self.page)
+        self.preview.addWidget(self.page)
         self.page_2 = QtWidgets.QWidget()
         self.page_2.setObjectName("page_2")
-        self.stackedWidget.addWidget(self.page_2)
+        self.preview.addWidget(self.page_2)
         self.gridLayout_2.addWidget(self.splitter_2, 0, 0, 1, 1)
         self.setCentralWidget(self.centralwidget)
+
+        # ---------------
+        # self.ss = ControlShell("QPushButton", "btn", self.page)
+        # self.ss.setGeometry(90, 90, 120, 80)
+        # self.ss.activate(True)
+        # self.__control_group.addControlShell(self.ss)
+        # self.__control_group.setActivateControl(*self.ss.name())
+        self.addControlShell("QPushButton", "btn", self.page)
+        self.addControlShell("QPushButton", "btn2", self.page)
+        # ------------
+
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1346, 23))
         self.menubar.setObjectName("menubar")
         self.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName("statusbar")
-        self.setStatusBar(self.statusbar)
+
+
+        self.myStatusbar()
 
         self.retranslateUi()
         self.tabWidget.setCurrentIndex(0)
@@ -67,6 +88,12 @@ class QssEdit(QMainWindow):
         self.mySplitter()
 
         QtCore.QMetaObject.connectSlotsByName(self)
+
+    def addControlShell(self,name:str,alias:str,stackedWidget:QStackedWidget,attrs:dict=None):
+        ss = ControlShell(name, alias, stackedWidget)
+        ss.activate(True)
+        self.__control_group.addControlShell(ss)
+        self.__control_group.setActivateControl(*ss.name())
 
     # 创建树
     def createTree(self):
@@ -93,11 +120,61 @@ class QssEdit(QMainWindow):
     def myEvent(self):
         self.treeWidget.filenameedit.connect(self.open_qss)
 
+    def myStatusbar(self):
+        self.statusbar = QtWidgets.QStatusBar(self)
+        self.statusbar.setObjectName("statusbar")
+        self.setStatusBar(self.statusbar)
+
+        self.statusbar.addWidget(QLabel("{}".format(self.__control_group.getActivateControl().name()[1])))
+
+        self.statusbar.addWidget(QLabel("W"))
+        self.w = QSpinBox()
+        self.statusbar.addWidget(self.w)
+        self.h = QSpinBox()
+        self.statusbar.addWidget(QLabel("H"))
+        self.statusbar.addWidget(self.h)
+
+        self.w.setMinimum(1)
+        self.h.setMinimum(1)
+        self.w.setMaximum(500)
+        self.h.setMaximum(500)
+
+        obj = self.__control_group.getActivateControl().getObj()
+        self.w.setValue(obj.width())
+        self.h.setValue(obj.height())
+
+        self.w.textChanged.connect(self.w_Event)
+        self.h.textChanged.connect(self.h_Event)
+
+    def w_Event(self,w):
+        w = int(w)
+        obj = self.__control_group.getActivateControl().getObj()
+        obj.resize(w,obj.height())
+        obj.setMinimumSize(w,obj.height())
+        win = self.__control_group.getActivateControl().getSelf()
+        win.resize(w+1,win.height())
+
+    def h_Event(self,h):
+        h = int(h)
+        obj = self.__control_group.getActivateControl().getObj()
+        obj.resize(h, obj.height())
+        obj.setMinimumSize(h, obj.height())
+        win = self.__control_group.getActivateControl().getSelf()
+        win.resize(win.width(), h + 1)
+
+
+    # def textChanged_Event(self):
+    #     style = self.code_edit.text()
+    #     try:
+    #         obj = self.__control_group.getActivateControl().getObj()
+    #         obj.setStyleSheet(style)
+    #     except Exception as e:
+    #         print(e)
+
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("self", "self"))
-        # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("self", "Tab 1"))
-        # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("self", "Tab 2"))
+        self.setWindowTitle(_translate("self", "QssEditor"))
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
