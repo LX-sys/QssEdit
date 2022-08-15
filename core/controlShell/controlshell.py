@@ -112,7 +112,6 @@ class ControlGroup:
             return
         c_list = self.getControlList(name)
         for c in c_list:
-            # print(c)
             if c.name()[1] == alias:
                 self.curr_activate_control = c
                 c.activate(True)

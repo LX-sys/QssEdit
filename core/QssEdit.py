@@ -18,6 +18,7 @@ from core.controlShell import ControlShell,ControlGroup
 
 from core.newControl import NewControl
 
+
 class QssEdit(QMainWindow):
     def __init__(self, *args,**kwargs) -> None:
         super().__init__(*args,**kwargs)
@@ -68,15 +69,6 @@ class QssEdit(QMainWindow):
         self.gridLayout_2.addWidget(self.splitter_2, 0, 0, 1, 1)
         self.setCentralWidget(self.centralwidget)
 
-        # ---------------
-        # 添加程序外壳
-
-        # s = QPushButton("hello",self.page)
-        # self.addControlShell("QPushButton", "btn",self.page)
-        # self.addControlShell("QPushButton", "btn2",self.page)
-        # self.__control_group.setActivateControl("QPushButton", "btn")
-        # ------------
-
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1346, 23))
         self.menubar.setObjectName("menubar")
@@ -114,7 +106,6 @@ class QssEdit(QMainWindow):
     def creatTab(self):
         self.tabWidget = Tab(self.splitter)
 
-
     # 布局调整
     def mySplitter(self):
         w1 = int(self.width() * 0.65)
@@ -136,7 +127,6 @@ class QssEdit(QMainWindow):
         except:
             pass
 
-
     # 打开qss文件,进行编辑
     def open_qss(self,file_name:str):
         if self.tabWidget.is_tab(file_name):
@@ -152,8 +142,7 @@ class QssEdit(QMainWindow):
         alias = self.__control_dict[file_name][1]
         # 切换控件
         self.__control_group.setActivateControl(name,alias)
-
-        print("控件切换成功")
+        # print("控件切换成功")
 
     def new_control_Event(self,info:dict):
         name = info["name"]
