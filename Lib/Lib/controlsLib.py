@@ -330,18 +330,26 @@ class ControlLib:
             print(" ==> ",end="")
             print("\033[1;30m{}\033[0m".format(v))
 
+    # 所有控件名称
+    @staticmethod
+    def allControls():
+        controls_ = list(ControlLib.controls.keys())
+        for v in ControlLib.controls.values():
+            controls_.extend(list(v.keys()))
+        return controls_
+
+    # 所有属性名称
+    @staticmethod
+    def allAttrs():
+        attrs_ = list(ControlLib.attrs.keys())
+        for v in ControlLib.attrs.values():
+            attrs_.extend(list(v.keys()))
+        return attrs_
+
     # 控件铺平
     @staticmethod
     def controls_list()->list:
-        controls_ = list(ControlLib.controls.keys())
-        attrs_ = list(ControlLib.attrs.keys())
-        for v in ControlLib.controls.values():
-            controls_.extend(list(v.keys()))
-
-        for v in ControlLib.attrs.values():
-            controls_.extend(list(v.keys()))
-
-        return controls_+attrs_
+        return ControlLib.allControls()+ControlLib.allAttrs()
 
 
 def showAttrs(control,x):
@@ -366,6 +374,7 @@ def showControl(control):
 # showControl("QRadioButton")
 # ControlLib.help()
 
+print(ControlLib.allControls())
 def getStyleStr(control:str, pseudo_state: list = None):
     '''
     返回一个该control所有可操作样式的空字符串

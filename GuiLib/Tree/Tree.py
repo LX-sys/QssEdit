@@ -32,17 +32,17 @@ class Tree(QTreeWidget):
 
     def Init(self):
         self.setHeaderVisable(False)
-        s = {
-            "dasd":
-                [
-                    "301.qss", "302.qss", {
-                    "ds": ["ss.qss", "sss.qss", "cc.qss"],
-                    "ss": []
-                }
-                ],
-            "hell": []
-        }
-        self.createTree(s)
+        # s = {
+        #     "dasd":
+        #         [
+        #             "301.qss", "302.qss", {
+        #             "ds": ["ss.qss", "sss.qss", "cc.qss"],
+        #             "ss": []
+        #         }
+        #         ],
+        #     "hell": []
+        # }
+        # self.createTree(s)
 
     # 隐藏头
     def setHeaderVisable(self, visable: bool):

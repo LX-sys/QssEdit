@@ -91,5 +91,5 @@ def deal_Code(filepath:str,c_name:str="UI",inheritance_name:str="QMainWindow",mo
     return code
 
 
-deal_Code(r"D:\code\QssEdit\UI\QssEdit.py",
-          outfile=r"D:\code\QssEdit\UI\QssEdit.py", c_name="QssEdit", inheritance_name="QMainWindow")
+deal_Code(r"/core/newControl.py",
+          outfile=r"D:\code\QssEdit\UI\newControl.py", c_name="NewControl", inheritance_name="QWidget")

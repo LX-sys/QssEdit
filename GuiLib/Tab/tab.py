@@ -25,6 +25,7 @@ class Tab(QTabWidget):
 
     # 获取tab
     def getTab(self,name)->QWidget:
+        print(self.__tab)
         return self.__tab[name][name]
 
     def addTab(self, widget: QWidget, name: str) -> None:
@@ -40,9 +41,20 @@ class Tab(QTabWidget):
     def Init(self):
         pass
 
+    # 聚焦tab
+    def focusTab(self,name):
+        for i in range(self.count()):
+            if self.tabText(i) == name:
+                self.setCurrentIndex(i)
+                break
+
+    def is_tab(self,name)->bool:
+        if name in self.__tab:
+            return True
+        return False
+
     def closeTab_Event(self,index):
         text = self.tabText(index)
-        print(text)
         self.removeTab(index)
         self.removeed.emit(text)
 

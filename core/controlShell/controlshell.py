@@ -9,10 +9,12 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QPushButton,QFrame,QWidget,QGridLayout,QLineEdit
 
+from core.dynamic_control import PushButton
+
 # 控件外壳
 class ControlShell(QFrame):
     objed = pyqtSignal(dict)
-    def __init__(self,control_name:str=None,alias:str=None,*args,**kwargs):
+    def __init__(self,control_name=None,alias:str=None,*args,**kwargs):
         super().__init__(*args,**kwargs)
         # 控件名称,和别名
         self.__control_name = (control_name,alias)
@@ -22,17 +24,21 @@ class ControlShell(QFrame):
         self.setObjectName("ABC")
 
         if control_name and alias:
-            self.createControl(control_name,alias)
+            if type(control_name) == str:
+                self.createControl(control_name,alias)
+            else:
+                self.createControl(widget=control_name,alias=alias)
 
     def activate(self,b:bool):
+        old_style = self.styleSheet()
         if b:
-            self.setStyleSheet('''
+            self.setStyleSheet(old_style+'''\n
             QFrame#ABC{
             border:1px solid rgb(0, 0, 255);
             }
             ''')
         else:
-            self.setStyleSheet('''
+            self.setStyleSheet(old_style+'''\n
                         QFrame#ABC{
                         border:1px solid gray;
                         }
@@ -48,22 +54,27 @@ class ControlShell(QFrame):
     def getSelf(self)->QWidget:
         return self
 
-    def createControl(self,name:str,alias:str):
-        p = None
-        if name == "QPushButton":
-            p = QPushButton(self)
-            p.setText("test")
+    def createControl(self,name:str="test",alias:str=None,widget:QWidget=None):
+        if widget is None:
+            if name == "QPushButton":
+                widget = PushButton(self)
 
-        if name == "QLineEdit":
-            p = QLineEdit(self)
-            p.resize(100,30)
 
-        if p:
-            if p not in self.__obj:
-                self.__obj[name] = [{name:p,"alias":alias}]
+            if name == "QLineEdit":
+                widget = QLineEdit(self)
+                widget.resize(100,30)
+
+        if widget:
+            if widget not in self.__obj:
+                self.__obj[name] = [{name:widget,"alias":alias}]
             else:
-                self.__obj[name].append({name:p,"alias":alias})
-            self.gridLayout.addWidget(p, 1, 1, 1, 1)
+                self.__obj[name].append({name:widget,"alias":alias})
+            self.gridLayout.addWidget(widget)
+
+    def is_successful(self)->bool:
+        if len(self.__obj) == 1:
+            return False
+        return True
 
     # 拖动窗口
     def mousePressEvent(self, event):
@@ -81,6 +92,7 @@ class ControlShell(QFrame):
     def mouseReleaseEvent(self, QMouseEvent):
         self.m_flag = False
         self.setCursor(QtCore.Qt.ArrowCursor)
+
 
 # 控件群
 class ControlGroup:
@@ -103,6 +115,7 @@ class ControlGroup:
             # print(c)
             if c.name()[1] == alias:
                 self.curr_activate_control = c
+                c.activate(True)
             else:
                 c.activate(False)
 
