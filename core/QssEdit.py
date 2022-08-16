@@ -101,6 +101,7 @@ class QssEdit(QMainWindow):
     def createTree(self):
         self.treeWidget = Tree(self.splitter)
         self.treeWidget.setObjectName("treeWidget")
+        self.treeWidget.createTree({"defuat":[]})
 
 
     def creatTab(self):
