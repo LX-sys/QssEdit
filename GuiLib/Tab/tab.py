@@ -28,10 +28,13 @@ class Tab(QTabWidget):
         print(self.__tab)
         return self.__tab[name][name]
 
-    def addTab(self, widget: QWidget, name: str) -> None:
+    def addTab(self, widget: QWidget,icon=None,name: str=None) -> None:
         self.__tab[name] = {name:widget}
         new_win = QWidget()
-        super(Tab, self).addTab(new_win, name)
+        if icon:
+            super(Tab, self).addTab(new_win, icon, name)
+        else:
+            super(Tab, self).addTab(new_win, name)
 
         gridLayout = QGridLayout(new_win)
         gridLayout.setContentsMargins(0, 0, 0, 0)

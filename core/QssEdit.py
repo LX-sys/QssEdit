@@ -149,7 +149,7 @@ class QssEdit(QMainWindow):
         name = info["name"]
         control = info["control"]
         if self.addControlShell(control, name,self.page):
-            self.treeWidget.createTree({"defuat":[name+".qss"]})
+            self.treeWidget.createTree({"default":[name+".qss"]})
             self.__control_dict[name+".qss"]=(control,name)
 
     #  切换tab

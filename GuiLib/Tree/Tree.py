@@ -118,13 +118,13 @@ class Tree(QTreeWidget):
     #     return False
 
     # 添加文件夹
-    def add_folder(self,parent=None,name=""):
-        if parent is None:
-            parent = self
-        item = QTreeWidgetItem(parent)
-        item.setIcon(0, self.get_default_icon())
-        item.setText(0, name)
-        self.addTopLevelItem(item)
+    # def add_folder(self,parent=None,name=""):
+    #     if parent is None:
+    #         parent = self
+    #     item = QTreeWidgetItem(parent)
+    #     item.setIcon(0, self.get_default_icon())
+    #     item.setText(0, name)
+    #     self.addTopLevelItem(item)
 
     # 鼠标右键创建文件夹
     def create_folder(self):
@@ -158,13 +158,15 @@ class Tree(QTreeWidget):
         text, ok = QInputDialog.getText(self, '创建文件', '请输入文件名称:')
         if ok:
             temp_item = None
+            if self.currentItem is None:  # 当前没有选中的节点
+                temp_item = self
+            else:
+                temp_item = self.currentItem.parent()
+
             if self.is_folder(self.currentItem):
                 temp_item = self.currentItem
-            else:
-                if self.currentItem is None:  # 当前没有选中的节点
-                    temp_item = self
-                else:
-                    temp_item = self.currentItem.parent()
+            # else:
+
             item = QTreeWidgetItem(temp_item)
             item.setText(0, text + self.suffix)
             self.addTopLevelItem(item)
