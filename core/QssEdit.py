@@ -142,8 +142,8 @@ class QssEdit(QMainWindow):
             self.tabWidget.addTab(qss_edit,file_name)
             self.tabWidget.focusTab(file_name)
 
-        name = self.__control_dict[file_name][0]
-        alias = self.__control_dict[file_name][1]
+        name = self.__control_dict[file_name]["type"]
+        alias = self.__control_dict[file_name]["alias"]
         # 切换控件
         self.__control_group.setActivateControl(name,alias)
         # print("控件切换成功")
@@ -166,8 +166,8 @@ class QssEdit(QMainWindow):
     #  切换tab
     def change_tab_Event(self,index):
         file_name = self.tabWidget.tabText(index)
-        name = self.__control_dict[file_name][0]
-        alias = self.__control_dict[file_name][1]
+        name = self.__control_dict[file_name]["type"]
+        alias = self.__control_dict[file_name]["alias"]
         # 切换控件
         self.__control_group.setActivateControl(name, alias)
 

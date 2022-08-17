@@ -132,7 +132,8 @@ class ControlGroup:
     def addControlShell(self,control_shell:ControlShell):
         name,alias = control_shell.name()
         if self.is_alias(name,alias):
-            raise Exception("别名重复")
+            return
+            # raise Exception("别名重复")
 
         if name not in self.controlGroup():
             self.controlGroup()[name] = [{"control":control_shell,"alias":alias}]
