@@ -4,7 +4,7 @@
 # @file:Tree.py
 # @software:PyCharm
 
-
+import copy
 import sys,os
 from PyQt5 import QtGui
 from PyQt5.QtCore import QPoint, Qt, pyqtSignal, QSize, QModelIndex
@@ -17,17 +17,21 @@ RootPath = os.path.abspath(os.path.dirname(__file__))
 icon_Path = os.path.join(RootPath, "icon")
 
 
+
 class Tree(QTreeWidget):
-    filenameedit = pyqtSignal(str)
+    filenameedit = pyqtSignal(str)  # 双击文件事情,发送文件名时间
+    rightClicked = pyqtSignal()  # 鼠标右键信号
+
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)
-
+        # default这是一个特殊的key,用于存储在最外层的.qss文件
         self.__structure_tree = dict()
         # 当前右键选中的节点
         self.currentItem = None  # type:QTreeWidgetItem
         # 后缀名
-        self.suffix = ".qss"
-
+        self.suffix = ""
+        # 鼠标右键功能,创建文件功能,而改为用事件代替
+        self.right_menu_createfile_bool = True
         # 注册右键菜单
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.menu_Event)
@@ -36,20 +40,18 @@ class Tree(QTreeWidget):
 
     def Init(self):
         self.setHeaderVisable(False)
-        # s = {
-        #     "dasd":
-        #         [
-        #             "301.qss", "302.qss", {
-        #             "ds": ["ss.qss", "sss.qss", "cc.qss"],
-        #             "ss": []
-        #         }
-        #         ],
-        #     "hell": []
-        # }
-        s={"aa":["cc.qss",{"cc":["ll.qss"]}]}
-        self.createTree(s)
-        # s = {"aa": ["ss"]}
-        # self.createTree(s)
+        # 初始带有默认文件夹
+        # self.createTree({"default":[]})
+        self.setSuffix(".qss")
+        # self.create_file("qds")
+        self.setCloseMouseRight(False)
+
+    def tree(self)->dict:
+        return self.__structure_tree
+
+    # 设置后缀
+    def setSuffix(self, suffix: str):
+        self.suffix = suffix
 
     # 隐藏头
     def setHeaderVisable(self, visable: bool):
@@ -58,7 +60,6 @@ class Tree(QTreeWidget):
     # 默认图标
     def get_default_icon(self)->QIcon:
         icon = QIcon()
-        # print(os.path.join(icon_Path, "folder.png"))
         icon.addFile(os.path.join(icon_Path, "folder.png"), QSize(), QIcon.Normal, QIcon.Off)
         icon.addFile(os.path.join(icon_Path, "folder_open.png"), QSize(), QIcon.Normal, QIcon.On)
         icon.addFile(os.path.join(icon_Path, "folder_av.png"), QSize(), QIcon.Selected, QIcon.Off)
@@ -110,27 +111,45 @@ class Tree(QTreeWidget):
             return False
         return True
 
-    # 判断是否有name的文件夹
-    # def is_p_node(self,name:str):
-    #     for i in self.__structure_tree:
-    #         if i == name:
-    #             return True
-    #     return False
 
-    # 添加文件夹
-    # def add_folder(self,parent=None,name=""):
-    #     if parent is None:
-    #         parent = self
-    #     item = QTreeWidgetItem(parent)
-    #     item.setIcon(0, self.get_default_icon())
-    #     item.setText(0, name)
-    #     self.addTopLevelItem(item)
+    def __is_have_file(self,name:str=None,mode:str=None)->bool:
+        '''
 
-    # 鼠标右键创建文件夹
-    def create_folder(self):
+        :param name: 节点
+        :param mode: 文件或者是文件夹
+            file
+            folder
+        :return:
+        '''
+        if self.currentItem is None:
+            if self.tree().get("default") is None:
+                return False
+            else:
+                f_list = self.tree()["default"]
+                if name in f_list:
+                    return True
+                else:
+                    return False
+
+        if mode == "file":
+            f_list = self.get_tree_list(self.currentItem)["file"]
+        elif mode == "folder":
+            f_list = self.get_tree_list(self.currentItem)["folder"]
+
+        if name in f_list:
+            return True
+        else:
+            return False
+
+    # 鼠标右键创建文件夹(鼠标右键)
+    def create_folder_right(self):
         text, ok = QInputDialog.getText(self, '创建文件夹', '请输入文件夹名称:')
-        if ok:
 
+        if self.__is_have_file(text, "folder"):
+            QMessageBox.warning(self, "警告", "文件夹已存在")
+            return
+
+        if ok:
             if self.currentItem is None or self.currentItem.parent() is None: # 当前没有选中的节点
                 if text in self.__structure_tree: # 判断最外层是否有该文件夹
                     QMessageBox.warning(self, "警告", "文件夹已存在")
@@ -138,13 +157,13 @@ class Tree(QTreeWidget):
                 temp_item = self
             else:
                 temp_item = self.currentItem.parent()
-                print("===")
-
             # 判断当前选中的节点是文件还是文件夹
             if self.is_folder(self.currentItem):
                 item = QTreeWidgetItem([text])
                 item.setIcon(0, self.get_default_icon())
                 self.currentItem.addChild(item)
+                self.right_path_address(self.currentItem).append({text:[]})
+                print(self.tree())
                 return  # 如果是文件夹，则直接返回
 
 
@@ -152,25 +171,186 @@ class Tree(QTreeWidget):
             item.setIcon(0, self.get_default_icon())
             item.setText(0, text)
             self.addTopLevelItem(item)
+            if temp_item is self: # 没有选择节点的情况
+                self.tree()[text] = []
+            else:# 新建文件夹
+                self.right_path_address(temp_item).append({text: []})
+            print(self.tree())
+
+    # 关闭鼠标右键自带的功能,而改为用事件代替
+    def setCloseMouseRight(self,close:bool):
+        self.right_menu_createfile_bool = close
+
+    # 新建文件(鼠标右键)
+    def create_file_right(self):
+        if self.right_menu_createfile_bool:
+            text, ok = QInputDialog.getText(self, '创建文件', '请输入文件名称:')
+            if ok:
+                self.create_file(text)
+        else:
+            self.rightClicked.emit()
+
+    # 删除文件夹/文件(鼠标右键)
+    def delete_right(self):
+        if self.currentItem is None:
+            print("没有选中的节点")
+            return
+
+        # 顶级目录
+        if self.currentItem.parent() is None:
+            file_name = self.currentItem.text(0)
+            if self.suffix in file_name: # 如果是.qss文件
+                self.tree()["default"].remove(file_name)
+                self.takeTopLevelItem(self.currentIndex().row())
+                print(self.tree())
+                return
+            else:
+                self.tree().pop(file_name)
+                self.takeTopLevelItem(self.currentIndex().row())
+                print(self.tree())
+                return # 如果是文件夹，则直接返回
+
+        file_name = self.currentItem.text(0)
+        if self.is_folder(self.currentItem):
+            select = False
+            if self.currentItem.childCount() > 0:
+                select = QMessageBox.question(self, "警告", "该文件夹不为空,确认删除?", QMessageBox.Yes | QMessageBox.No)
+            if select == QMessageBox.Yes:
+                # 删除结构树中的文件夹/文件
+                temp = self.right_path_address(self.currentItem.parent())
+                for v in temp:
+                    if isinstance(v,dict):
+                        if list(v.keys())[0] == file_name:
+                            temp.remove(v)
+                            break
+                self.currentItem.parent().removeChild(self.currentItem)
+                print(self.tree())
+            return
+        else:
+            # 文件的删除
+            temp = self.right_path_address(self.currentItem.parent())
+            temp.remove(file_name)
+            self.currentItem.parent().removeChild(self.currentItem)
+        print(self.tree())
 
     # 新建文件
-    def create_file(self):
-        text, ok = QInputDialog.getText(self, '创建文件', '请输入文件名称:')
-        if ok:
-            temp_item = None
-            if self.currentItem is None:  # 当前没有选中的节点
-                temp_item = self
+    def create_file(self,file_name:str):
+        # 文件名
+        qss_name = file_name + self.suffix
+
+        if self.__is_have_file(qss_name,"file"):
+            QMessageBox.warning(self, "警告", "文件已存在")
+            return
+
+        if self.is_folder(self.currentItem):
+            temp_item = self.currentItem
+        elif self.currentItem is None:  # 当前没有选中的节点
+            temp_item = self
+        else:
+            temp_item = self.currentItem.parent()
+        item = QTreeWidgetItem(temp_item)
+        item.setText(0, qss_name)
+        self.addTopLevelItem(item)
+
+        if temp_item is self:
+            if not self.tree().get("default", None):
+                self.tree()["default"] = []
+            self.tree()["default"].append(qss_name)
+        else:
+            self.right_path_address(temp_item).append(qss_name)
+
+        # # 默认添加到文件夹default下
+        # if not self.tree().get("default", None):
+        #     self.tree()["default"] = []
+        # self.tree()["default"].append(qss_name)
+        #
+        # # 默认树节点
+        # default_item = self.findItems("default", Qt.MatchExactly)[0]
+        # item = QTreeWidgetItem(default_item)
+        # item.setText(0, qss_name)
+        # self.addTopLevelItem(item)
+
+        # 发送信号
+        self.rightClicked.emit()
+        print(self.tree())
+
+    # 鼠标右键的路径
+    def right_path(self,currentItem:QTreeWidgetItem)->list:
+        # 处理最外层
+        if currentItem is None:
+            return []
+        if currentItem.parent() is None:
+            return [currentItem.text(0)]
+
+        # 路径跟踪列表
+        path_track_list = []
+        item = currentItem
+        while item:
+            p = item.parent()
+            if p is not None:
+                path_track_list.append(p.text(0))
+            item = p
+        # 反转
+        path_track_list.reverse()
+
+        # 如果点击的文件夹,则添加该文件夹名称
+        if self.is_folder(currentItem):
+            path_track_list.append(currentItem.text(0))
+        return path_track_list
+
+    # 根据右键路径,返回该空间的地址
+    def right_path_address(self,currentItem:QTreeWidgetItem)->list:
+        if currentItem is None:
+            return []
+        right_click_folder_name = currentItem.text(0)
+
+        # --文件夹中添加文件夹有BUG
+        path = self.right_path(currentItem)
+        temp_tree = self.tree()
+        temp = None
+        if len(path) == 1:
+            return self.tree()[path[0]]
+
+        if self.is_folder(currentItem):
+            for v in path:
+                temp = temp_tree[v]
+                for i in temp:
+                    # 判断是否为文件夹,同时判断是否是右键所点击的文件夹
+                    if isinstance(i,dict) and list(i.keys())[0] == right_click_folder_name:
+                        temp_tree = i
+                        break
+                    else:
+                        temp_tree = i
+        else:
+            for v in path:
+                temp = temp_tree[v]
+                break
+
+        return temp
+
+    # 获取文件夹下的文件列表
+    def get_tree_list(self,currentItem:QTreeWidgetItem)->dict:
+
+        file_names = {"file":[],"folder":[],"click":""} # 文件列表，文件夹列表，点击的节点名称
+        if currentItem is None:
+            return dict()
+
+        # 文件
+        if not self.is_folder(currentItem):
+            if currentItem.parent() is None:
+                return file_names
             else:
-                temp_item = self.currentItem.parent()
+                currentItem = currentItem.parent()
 
-            if self.is_folder(self.currentItem):
-                temp_item = self.currentItem
-            # else:
+        file_names["click"] = currentItem.text(0)
 
-            item = QTreeWidgetItem(temp_item)
-            item.setText(0, text + self.suffix)
-            self.addTopLevelItem(item)
-            # print(self.__structure_tree)
+        for i in range(currentItem.childCount()):
+            text = currentItem.child(i).text(0)
+            if self.suffix in text:
+                file_names["file"].append(text)
+            else:
+                file_names["folder"].append(text)
+        return file_names
 
     def menu_Event(self, pos: QPoint):
         # 当前右键选中的节点
@@ -178,16 +358,20 @@ class Tree(QTreeWidget):
         # 创建菜单
         menu = QMenu()
         # 添加菜单项
-        look_action = menu.addAction("查看信息")
+        look_action = menu.addAction("重命名")
         menu.addAction(look_action)
 
         c_file_action = menu.addAction("创建文件")
         menu.addAction(look_action)
-        c_file_action.triggered.connect(self.create_file)
+        c_file_action.triggered.connect(self.create_file_right)
 
         c_file_action = menu.addAction("创建文件夹")
         menu.addAction(look_action)
-        c_file_action.triggered.connect(self.create_folder)
+        c_file_action.triggered.connect(self.create_folder_right)
+
+        c_del_action = menu.addAction("删除")
+        menu.addAction(look_action)
+        c_del_action.triggered.connect(self.delete_right)
 
         # 显示菜单
         menu.exec_(QCursor.pos())
@@ -201,8 +385,14 @@ class Tree(QTreeWidget):
             # 发送信息
             self.filenameedit.emit(text)
 
+    # 单机节点事件
+    def clickEvent(self, item, column):
+        self.currentItem = item
+
+
     def myEvent(self):
         self.doubleClicked.connect(self.doubleClickedEvent)
+        self.itemClicked.connect(self.clickEvent)
 
 
 if __name__ == '__main__':

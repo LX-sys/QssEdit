@@ -14,6 +14,7 @@ from core.dynamic_control import PushButton
 # 控件外壳
 class ControlShell(QFrame):
     objed = pyqtSignal(dict)
+
     def __init__(self,control_name=None,alias:str=None,*args,**kwargs):
         super().__init__(*args,**kwargs)
         # 控件名称,和别名
@@ -59,7 +60,6 @@ class ControlShell(QFrame):
             if name == "QPushButton":
                 widget = PushButton(self)
 
-
             if name == "QLineEdit":
                 widget = QLineEdit(self)
                 widget.resize(100,30)
@@ -70,6 +70,7 @@ class ControlShell(QFrame):
             else:
                 self.__obj[name].append({name:widget,"alias":alias})
             self.gridLayout.addWidget(widget)
+            print(self.__obj)
 
     def is_successful(self)->bool:
         if len(self.__obj) == 1:
@@ -108,15 +109,20 @@ class ControlGroup:
 
     # 设置控件外壳为激活状态,其他控件外壳设置为非激活状态
     def setActivateControl(self,name:str,alias:str=None):
-        if name not in self.__group:
+        if name not in self.controlGroup():
             return
+        print("--asd")
         c_list = self.getControlList(name)
         for c in c_list:
-            if c.name()[1] == alias:
-                self.curr_activate_control = c
-                c.activate(True)
+            if c["alias"] == alias:
+                self.curr_activate_control = c["control"]
+                c["control"].activate(True)
             else:
-                c.activate(False)
+                c["control"].activate(False)
+        print("激活完成")
+
+    def controlGroup(self)->dict:
+        return self.__group
 
     # 获取当前的激活的控件
     def getActivateControl(self)->ControlShell:
@@ -128,31 +134,32 @@ class ControlGroup:
         if self.is_alias(name,alias):
             raise Exception("别名重复")
 
-        if name not in self.__group:
-            self.__group[name] = [control_shell]
+        if name not in self.controlGroup():
+            self.controlGroup()[name] = [{"control":control_shell,"alias":alias}]
         else:
-            self.__group[name].append(control_shell)
+            self.controlGroup()[name].append({"control":control_shell,"alias":alias})
+
 
     # 判断相同控件下是否有别名重复
     def is_alias(self,name:str,alias:str)->bool:
-        if name not in self.__group:
+        if name not in self.controlGroup():
             return False
 
         c_list = self.getControlList(name)
         for c in c_list:
-            if c.name()[1] == alias:
+            if c["alias"] == alias:
                 return True
         return False
 
     # 获取控件列表
     def getControlList(self,name:str)->list:
-        if name not in self.__group:
+        if name not in self.controlGroup():
             return []
-        return self.__group[name]
+        return self.controlGroup()[name]
 
     # 获取控件外壳
     def getControlShell(self,name:str,alias:str=None)->ControlShell:
-        if name not in self.__group:
+        if name not in self.controlGroup():
             return None
 
         c_list = self.getControlList(name)

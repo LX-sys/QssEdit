@@ -28,7 +28,7 @@ class Tab(QTabWidget):
         print(self.__tab)
         return self.__tab[name][name]
 
-    def addTab(self, widget: QWidget,icon=None,name: str=None) -> None:
+    def addTab(self, widget: QWidget,name: str=None,icon=None) -> None:
         self.__tab[name] = {name:widget}
         new_win = QWidget()
         if icon:

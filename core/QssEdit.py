@@ -9,6 +9,8 @@
 
 
 import sys
+import webbrowser
+
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget
 from PyQt5 import QtCore, QtWidgets
 
@@ -130,6 +132,7 @@ class QssEdit(QMainWindow):
 
     # 打开qss文件,进行编辑
     def open_qss(self,file_name:str):
+        print("==>",file_name)
         if self.tabWidget.is_tab(file_name):
             self.tabWidget.focusTab(file_name)
         else:
@@ -145,12 +148,20 @@ class QssEdit(QMainWindow):
         self.__control_group.setActivateControl(name,alias)
         # print("控件切换成功")
 
+    # 新建控件-菜单事件
     def new_control_Event(self,info:dict):
         name = info["name"]
+        name = name+".qss"
         control = info["control"]
         if self.addControlShell(control, name,self.page):
-            self.treeWidget.createTree({"default":[name+".qss"]})
-            self.__control_dict[name+".qss"]=(control,name)
+            self.treeWidget.create_file(name.replace(".qss",""))
+            self.__control_dict[name]={"type":control,"alias":name}
+            print(self.__control_dict)
+            print(self.__control_group.controlGroup())
+
+    #
+    def rightClicked_Event(self):
+        self.newc.show()
 
     #  切换tab
     def change_tab_Event(self,index):
@@ -160,18 +171,31 @@ class QssEdit(QMainWindow):
         # 切换控件
         self.__control_group.setActivateControl(name, alias)
 
+
+    def closeTab_Event(self,tab_name:str):
+        print("close tab",tab_name)
+
     def myEvent(self):
         self.treeWidget.filenameedit.connect(self.open_qss)
         self.tabWidget.tabBarClicked.connect(self.change_tab_Event)
+        self.tabWidget.removeed.connect(self.closeTab_Event)
         # 新建
         self.newc.successfuled.connect(self.new_control_Event)
+        self.treeWidget.rightClicked.connect(self.rightClicked_Event)
+
+    # Qt样式官网
+    def qss_official_Event(self):
+        # 跳转到浏览器
+        webbrowser.open("https://doc.qt.io/qt-5/stylesheet-reference.html")
 
     def myMenu(self):
         self.menu = MenuSys(self)
         self.menu.addMenuHeader(["控件", "关于"])
         self.menu.addMenuChild("控件", ["新建控件"])
         self.menu.addMenuChild("关于", ["Qss编辑器"])
+        self.menu.addMenuChild("关于", ["Qt样式表(官网)"])
         self.menu.connect("控件", "新建控件", self.newControl)
+        self.menu.connect("关于", "Qt样式表(官网)", self.qss_official_Event)
 
     def newControl(self):
         self.newc.show()

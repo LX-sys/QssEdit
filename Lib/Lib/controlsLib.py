@@ -314,8 +314,16 @@ class ControlLib:
                  "text-overflow":"/*文本溢出*/",
                  "text-decoration-color":"/*文本装饰颜色*/",
                  "text-decoration-style":"/*文本装饰样式*/",
-                 "text-decoration-line":"/*文本装饰线*/",
-},
+                 "text-decoration-line":"/*文本装饰线*/"},
+        'border-style': {"solid": "/*实线*/",
+                         "dashed": "/*虚线*/",
+                         "dotted": "/*点线*/",
+                         "double": "/*双线*/",
+                         "groove": "/*凹槽*/",
+                         "ridge": "/*凸槽*/",
+                         "inset": "/*内嵌*/",
+                         "outset": "/*外嵌*/",
+                         "none": "/*无*/"},
 
     }
 

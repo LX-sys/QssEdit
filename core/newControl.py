@@ -56,6 +56,8 @@ class NewControl(QWidget):
     def Init(self):
         for name in ALL_Control.keys():
             self.comboBox_parent.addItem(name)
+        # 文本框聚焦
+        self.lineEdit.setFocus()
 
     def setupUi(self):
         self.setObjectName("self")
@@ -132,7 +134,6 @@ class NewControl(QWidget):
         child = ALL_Control[text]
         self.comboBox.clear()
         for name in child:
-            print(name)
             icon = self.get_default_icon(name)
             if icon:
                 self.comboBox.addItem(icon,name)
@@ -164,8 +165,9 @@ class NewControl(QWidget):
                 "name":text,
                 "control":self.comboBox.currentText()
             }
-            self.successfuled.emit(info)
+            self.successfuled.emit(info)  # 发送信息
             self.lineEdit.setText("")
+            self.hide()
 
 
     def myEvent(self):
