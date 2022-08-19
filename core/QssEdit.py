@@ -135,15 +135,18 @@ class QssEdit(QMainWindow):
     def rightClicked_Event(self):
         self.newc.show()
 
-    #  切换tab
+    # 切换tab,激活控件
     def change_tab_Event(self,index):
         file_name = self.tree_edit.getCurrentTab(index)
-        # 切换控件
+        # 切换控件(激活控件)
         self.__control_group.setActivateControl(*self.getControlInfo(file_name))
 
 
     def myEvent(self):
         self.tree_edit.treeRightClicked.connect(lambda :self.rightClicked_Event())
+        # 点击树节点时切换tab,并激活控件
+        self.tree_edit.treeLeftClicked.connect(lambda full_path:
+                                               self.__control_group.setActivateControl(*self.getControlInfo(full_path)))
         self.tree_edit.switchTab.connect(self.change_tab_Event)
         # 新建
         self.newc.successfuled.connect(self.new_control_Event)

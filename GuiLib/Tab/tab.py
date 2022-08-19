@@ -20,6 +20,7 @@ class Tab(QTabWidget):
         # 设置tab可关闭
         self.setTabsClosable(True)
 
+
         self.Init()
         self.myEvent()
         # self.addTab(QWidget(), "tab1")
@@ -31,10 +32,13 @@ class Tab(QTabWidget):
     def getTab(self,name)->QWidget:
         return self.__tab[name][name]
 
-    def addTab(self, widget: QWidget, name: str) -> None:
+    def addTab(self, widget: QWidget, name: str,pos:int=None) -> None:
         self.__tab[name] = {name:widget,"state":True}
         new_win = QWidget()
-        super(Tab, self).addTab(new_win, name)
+        if pos is None:
+            super(Tab, self).addTab(new_win, name)
+        else:
+            self.insertTab(pos,new_win,name)
 
         gridLayout = QGridLayout(new_win)
         gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -80,9 +84,15 @@ class Tab(QTabWidget):
 
         # 状态为真,则还原状态
         if state:
+            pos = 0
+            # 获取当前tab位置
+            for i in range(self.count()):
+                if self.tabText(i) == name:
+                    pos = i
+                    break
             win = self.getTab(name)
             self.delete(name)
-            self.addTab(win,name)
+            self.addTab(win,name,pos)
 
     # 获取当前显示的tab
     def getShowTab(self)->list:
