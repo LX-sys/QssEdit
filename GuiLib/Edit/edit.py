@@ -33,8 +33,6 @@ class Edit(QsciScintilla):
 
 
         # 设置代码补全
-        if keyword is None:
-            keyword = [""]
         for i in keyword:
             self.__api.add(i)
         self.__api.prepare()
@@ -46,8 +44,8 @@ class Edit(QsciScintilla):
         # 支持中文
         self.setUtf8(True)
 
-        # 设置字体
-        self.setFont(QFont("Yu Gothic UI", 16))
+        # 设置编辑框的字体
+        self.setFont(QFont("微软雅黑", 18))
 
         # 大小写不敏感
         self.setAutoCompletionCaseSensitivity(False)
@@ -77,7 +75,7 @@ class Edit(QsciScintilla):
         # 设置文档窗口的标题
         # self.setWindowTitle()
         # 将槽函数链接到文本改动的信号
-        # self.textChanged.connect(self.textChangedAction)
+        self.textChanged.connect(self.textChanged_Event)
         # 给文档窗口添加右键菜单
         self.setContextMenuPolicy(Qt.CustomContextMenu)  #
         self.customContextMenuRequested.connect(self.RightMenu)
@@ -85,9 +83,16 @@ class Edit(QsciScintilla):
 
 
         self.Init()
+    def textChanged_Event(self):
+        pass
 
     def RightMenu(self,pos):
-        pass
+        self.menu = QMenu()
+        look_action = self.menu.addAction("find")
+        # look_action.triggered.connect(self.look_Action)
+        del_action = self.menu.addAction("del")
+        # del_action.triggered.connect(self.del_Action)
+        self.menu.exec_(QCursor.pos())
 
     def keyPressEvent(self, e: QtGui.QKeyEvent) -> None:
         super().keyPressEvent(e)
@@ -96,11 +101,14 @@ class Edit(QsciScintilla):
         pass
 
 
+
 class PythonEdit(Edit):
     def __init__(self,*args, **kwargs,):
-        keyword = ["print", "def", "class", "__init__", "list", "dict", "main"]
-        super(PythonEdit, self).__init__(QsciLexerPython,keyword,*args, **kwargs)
+        super(PythonEdit, self).__init__(QsciLexerPython,*args, **kwargs)
 
+
+    def textChanged_Event(self):
+        print(self.text())
 
 class QSSEdit(Edit):
     def __init__(self,*args, **kwargs,):
@@ -108,7 +116,17 @@ class QSSEdit(Edit):
         #            "border-radius","border-width","border-style","border-color","hover","pressed"]
         keyword = ControlLib.controls_list()
         super(QSSEdit, self).__init__(QsciLexerCSS,keyword,*args, **kwargs)
-
+    #     self.plate = PlateDialog()
+    #     self.plate.rgbaChange.connect(self.plate_Event)
+    #     # self.plate.rgbaChanged[tuple].connect(self.plate_Event)
+    #
+    # def plate_Event(self,color):
+    #     rgba = "rgba({}, {}, {},{})".format(color[0],color[1],color[2],color[3])
+    #     rgba_len = len(rgba)
+    #     print(rgba)
+    #     self.insert(rgba)
+    #     pos = self.getCursorPosition()
+    #     self.setCursorPosition(pos[0],pos[1]+rgba_len)
 
     def color_Event(self):
         color = QColorDialog.getColor()

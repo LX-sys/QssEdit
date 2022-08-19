@@ -6,7 +6,7 @@
 
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QPoint
 from PyQt5.QtWidgets import QPushButton,QFrame,QWidget,QGridLayout,QLineEdit
 
 from core.dynamic_control import PushButton
@@ -17,6 +17,11 @@ class ControlShell(QFrame):
 
     def __init__(self,control_name=None,alias:str=None,*args,**kwargs):
         super().__init__(*args,**kwargs)
+
+        # 鼠标移动标记
+        self.m_flag = False
+        self.m_Position = QPoint(0,0)
+
         # 控件名称,和别名
         self.__control_name = (control_name,alias)
         self.__obj = {"self":self}
